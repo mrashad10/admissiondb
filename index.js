@@ -13,7 +13,7 @@ let db = new sqlite3.Database("/volume/messages.db", (err) => {
 
 async function connect() {
   try {
-    connection = await amqp.connect("amqp://rabbitmq:5672");
+    connection = await amqp.connect("amqp://admission_rabbitmq:5672");
     channel = await connection.createChannel();
     await channel.assertQueue("session");
     channel.consume("session", (dataBuffer) => {
