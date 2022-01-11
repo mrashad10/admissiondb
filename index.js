@@ -19,9 +19,9 @@ async function connect () {
     await channel.assertQueue('session')
     channel.consume('session', (dataBuffer) => {
       console.log('Message received')
-      data = JSON.parse(Buffer.from(dataBuffer.content))
+      const data = JSON.parse(Buffer.from(dataBuffer.content))
       console.log('Received data:', data)
-      query = 'INSERT INTO messages (username, key)'
+      let query = 'INSERT INTO messages (username, key)'
       query += ` SELECT '${data.username}', '${data.key}'`
       query += ` WHERE NOT EXISTS (SELECT 1 FROM messages WHERE username = '${data.username}' and key = '${data.key}')`
 
