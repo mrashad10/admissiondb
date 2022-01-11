@@ -36,7 +36,6 @@ async function connect () {
       )
     })
   } catch (error) {
-    // console.error(error);
     console.log('Rabbit is down')
     setTimeout(connect, 1000)
   }
