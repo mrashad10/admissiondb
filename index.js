@@ -22,14 +22,18 @@ async function connect () {
       const data = JSON.parse(Buffer.from(dataBuffer.content))
       console.log('Received data:', data)
       let query = 'INSERT INTO messages (username, key)'
-      query += ` SELECT '${data.username}', '${data.key}'`
-      query += ` WHERE NOT EXISTS (SELECT 1 FROM messages WHERE username = '${data.username}' and key = '${data.key}')`
+      query += ' SELECT ?, ?'
+      query += ' WHERE NOT EXISTS (SELECT 1 FROM messages WHERE username = ? and key = ?)'
 
-      db.run(query, (err) => {
-        if (err) throw err
-        channel.ack(dataBuffer)
-        console.log('Message acknowledged')
-      })
+      db.run(
+        query,
+        [data.username, data.key, data.username, data.key],
+        (err) => {
+          if (err) throw err
+          channel.ack(dataBuffer)
+          console.log('Message acknowledged')
+        }
+      )
     })
   } catch (error) {
     // console.error(error);
