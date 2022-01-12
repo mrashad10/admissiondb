@@ -1,6 +1,6 @@
 const sqlite3 = require('sqlite3').verbose()
-const amqp = require('amqplib')
-let channel, connection
+const mqtt = require('mqtt')
+let client
 
 const db = new sqlite3.Database('/volume/messages.db', (err) => {
   if (err) console.error(err.message)
@@ -14,24 +14,28 @@ const db = new sqlite3.Database('/volume/messages.db', (err) => {
 
 async function connect () {
   try {
-    connection = await amqp.connect('amqp://admission_rabbitmq:5672')
-    channel = await connection.createChannel()
-    await channel.assertQueue('session')
-    channel.consume('session', (dataBuffer) => {
+    client = mqtt.connect('mqtt://admission_rabbitmq:1883')
+    client.on('connect', () => {
+      console.log('Rabbit is connected')
+      client.subscribe('session')
+    })
+
+    client.on('message', (topic, data) => {
       console.log('Message received')
-      const data = JSON.parse(Buffer.from(dataBuffer.content))
+
+      data = JSON.parse(data.toString())
       console.log('Received data:', data)
       let query = 'INSERT INTO messages (username, key)'
       query += ' SELECT ?, ?'
-      query += ' WHERE NOT EXISTS (SELECT 1 FROM messages WHERE username = ? and key = ?)'
+      query +=
+        ' WHERE NOT EXISTS (SELECT 1 FROM messages WHERE username = ? and key = ?)'
 
       db.run(
         query,
         [data.username, data.key, data.username, data.key],
         (err) => {
           if (err) throw err
-          channel.ack(dataBuffer)
-          console.log('Message acknowledged')
+          console.log('DB updated')
         }
       )
     })
