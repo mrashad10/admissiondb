@@ -9,6 +9,7 @@ const db = new sqlite3.Database('/volume/messages.db', (err) => {
       'CREATE TABLE IF NOT EXISTS messages(stamp DATE NOT NULL DEFAULT CURRENT_TIMESTAMP, username VARCHAR(64), key VARCHAR(256))'
     )
   }
+  
   connect()
 })
 
